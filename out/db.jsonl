@@ -1,0 +1,4 @@
+{"aggregate_id":"p1","event_name":"payment.created","occurred_at":"2026-01-16T21:28:00.255222Z","payload":{"payment_id":"p1","user_id":"u1","amount":10,"service":"internet","at":"2026-01-16T21:28:00.255113Z"}}
+{"aggregate_id":"p1","event_name":"payment.initialized","occurred_at":"2026-01-16T21:28:00.255435Z","payload":{"payment_id":"p1","user_id":"u1","amount":10,"service":"internet","at":"2026-01-16T21:28:00.255113Z"}}
+{"aggregate_id":"p1","event_name":"payment.pending","occurred_at":"2026-01-16T21:28:00.25721Z","payload":{"payment_id":"p1","user_id":"u1","at":"2026-01-16T21:28:00.257134Z"}}
+{"aggregate_id":"p1","event_name":"payment.failed","occurred_at":"2026-01-16T21:29:01.56512Z","payload":{"payment_id":"p1","user_id":"u1","reason":"context deadline exceeded","at":"2026-01-16T21:29:01.564786Z"}}
