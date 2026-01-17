@@ -146,6 +146,7 @@ func main() {
 	bus.Subscribe((events.PaymentCreated{}).Name(), async(auditHandler.HandleAny))
 	bus.Subscribe((events.PaymentInitialized{}).Name(), async(auditHandler.HandleAny))
 	bus.Subscribe((events.PaymentPending{}).Name(), async(auditHandler.HandleAny))
+	bus.Subscribe((events.PaymentRejected{}).Name(), async(auditHandler.HandleAny))
 	bus.Subscribe((events.WalletDebited{}).Name(), async(auditHandler.HandleAny))
 	bus.Subscribe((events.WalletRefunded{}).Name(), async(auditHandler.HandleAny))
 	bus.Subscribe((events.RecoveryRequested{}).Name(), async(auditHandler.HandleAny))
