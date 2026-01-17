@@ -310,12 +310,35 @@ curl -i -X POST http://localhost:8080/wallet/credit \
 curl -i http://localhost:8080/wallet/u1
 ```
 
-## 6.3 Create payment
+## 6.3 Payment scenarios
+
+### 6.3.1 Rejected and refund
 
 ```bash
-curl -i -X POST http://localhost:8080/payments \
-  -H 'Content-Type: application/json' \
-  -d '{"payment_id":"p1","user_id":"u1","amount":50,"service":"internet"}'
+curl --location 'http://localhost:8080/payments' \
+--header 'Content-Type: application/json' \
+--data '{
+    "payment_id": "p1",
+    "user_id": "u1",
+    "amount": 10,
+    "service": "internet"
+  }'
+```
+
+### 6.3.2 Success
+
+```bash
+curl --location 'http://localhost:8080/payments' \
+--header 'Content-Type: application/json' \
+--data '{"payment_id":"p_succ_1","user_id":"u1","amount":13,"service":"internet"}'
+```
+
+### 6.3.3 Rejected due to insufficient funds
+
+```bash
+curl --location 'http://localhost:8080/payments' \
+--header 'Content-Type: application/json' \
+--data '{"payment_id":"p_insufficient_1","user_id":"u_insufficient","amount":50,"service":"internet"}'
 ```
 
 ## 6.4 Get payment
