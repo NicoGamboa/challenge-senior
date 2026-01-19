@@ -218,10 +218,35 @@ Defined in `internal/events/events.go`.
 
 ## 3.3 Ordering and Delivery
 
-In this repo the bus is **in-process** (`kit/broker.Bus`) and handlers run through an `async(...)` wrapper that spawns goroutines.
+In this repo the bus is **in-process** (`kit/broker.Bus`). It provides:
 
-- There is no global ordering guarantee between handlers.
-- Event persistence happens through `kit/db.Store` (append-only JSONL) when components invoke it.
+- **Partition-like ordering** (shards) based on the event `PartitionKey()`.
+  - Events with the same `PartitionKey()` are processed **in FIFO order** by a single worker.
+  - There is **no global ordering guarantee** across different keys.
+- **At-least-once delivery (in-process)** via retries.
+  - If a handler returns an error or panics, the bus retries with exponential backoff until the handler succeeds.
+  - This guarantee holds **while the process is alive**. A process crash can still lose in-flight deliveries.
+
+Event persistence happens through `kit/db.Store` (append-only JSONL) when components invoke it.
+
+### 3.3.1 Why idempotency is critical with at-least-once
+
+With **at-least-once**, a handler can see the **same event more than once** (for example if it executed a side effect and then returned an error).
+Therefore handlers must be **idempotent**: processing the same event multiple times must produce the same final state.
+
+Why it matters in this payment domain:
+
+- **Wallet debit** must not be applied twice.
+- **Refund** must not be applied twice.
+- **Payment state transitions** must not “flip-flop” due to duplicates.
+
+Common approaches (production patterns):
+
+- **Inbox / deduplication table** keyed by a stable `event_id` (or an envelope id) per consumer.
+- **Idempotency keys** on external calls (gateway charge/refund).
+- **Optimistic locking / version checks** on aggregates.
+
+This repository demonstrates at-least-once delivery at the broker level; a production system should add explicit deduplication/idempotency mechanisms to fully guarantee correctness under retries.
 
 ---
 
