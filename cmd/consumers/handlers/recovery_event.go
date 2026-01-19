@@ -42,7 +42,7 @@ func NewRecoveryEvent(logger *observability.Logger, bus BusContract, paymentSvc 
 func (h *RecoveryEvent) HandleRecoveryRequested(ctx context.Context, evt broker.Event) error {
 	e, ok := evt.(events.RecoveryRequested)
 	if !ok {
-		return fmt.Errorf("unexpected event type: %T", evt)
+		return fmt.Errorf("%w: unexpected event type: %T", ErrUnexpectedEventType, evt)
 	}
 
 	if h.logger != nil {
@@ -66,6 +66,6 @@ func (h *RecoveryEvent) HandleRecoveryRequested(ctx context.Context, evt broker.
 		h.bus.Publish(ctx, events.WalletDebitRequested{PaymentID: p.ID, UserID: p.UserID, Amount: p.Amount, Attempt: e.Attempts + 1, At: time.Now().UTC()})
 		return nil
 	default:
-		return fmt.Errorf("unknown recovery action: %s", e.Action)
+		return fmt.Errorf("%w: unknown recovery action: %s", ErrUnknownRecoveryAction, e.Action)
 	}
 }

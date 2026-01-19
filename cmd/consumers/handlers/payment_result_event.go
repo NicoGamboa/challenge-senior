@@ -24,7 +24,7 @@ func NewPaymentResultEvent(logger *observability.Logger, bus BusContract, paymen
 func (h *PaymentResultEvent) HandleChargeSucceeded(ctx context.Context, evt broker.Event) error {
 	e, ok := evt.(events.PaymentChargeSucceeded)
 	if !ok {
-		return fmt.Errorf("unexpected event type: %T", evt)
+		return fmt.Errorf("%w: unexpected event type: %T", ErrUnexpectedEventType, evt)
 	}
 	return h.payment.MarkSucceeded(ctx, e.PaymentID, e.GatewayID)
 }
@@ -32,7 +32,7 @@ func (h *PaymentResultEvent) HandleChargeSucceeded(ctx context.Context, evt brok
 func (h *PaymentResultEvent) HandleChargeFailed(ctx context.Context, evt broker.Event) error {
 	e, ok := evt.(events.PaymentChargeFailed)
 	if !ok {
-		return fmt.Errorf("unexpected event type: %T", evt)
+		return fmt.Errorf("%w: unexpected event type: %T", ErrUnexpectedEventType, evt)
 	}
 	if err := h.payment.MarkFailed(ctx, e.PaymentID, e.Reason); err != nil {
 		return err

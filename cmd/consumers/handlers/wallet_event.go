@@ -25,7 +25,7 @@ func NewWalletEvent(logger *observability.Logger, bus BusContract, walletSvc wal
 func (h *WalletEvent) HandlePaymentInitialized(ctx context.Context, evt broker.Event) error {
 	e, ok := evt.(events.PaymentInitialized)
 	if !ok {
-		return fmt.Errorf("unexpected event type: %T", evt)
+		return fmt.Errorf("%w: unexpected event type: %T", ErrUnexpectedEventType, evt)
 	}
 
 	h.bus.Publish(ctx, events.WalletDebitRequested{PaymentID: e.PaymentID, UserID: e.UserID, Amount: e.Amount, Attempt: 1, At: time.Now().UTC()})
@@ -35,7 +35,7 @@ func (h *WalletEvent) HandlePaymentInitialized(ctx context.Context, evt broker.E
 func (h *WalletEvent) HandleWalletDebitRequested(ctx context.Context, evt broker.Event) error {
 	e, ok := evt.(events.WalletDebitRequested)
 	if !ok {
-		return fmt.Errorf("unexpected event type: %T", evt)
+		return fmt.Errorf("%w: unexpected event type: %T", ErrUnexpectedEventType, evt)
 	}
 
 	if err := h.wallet.Debit(ctx, e.UserID, e.Amount); err != nil {
@@ -54,7 +54,7 @@ func (h *WalletEvent) HandleWalletDebitRequested(ctx context.Context, evt broker
 func (h *WalletEvent) HandleWalletRefundRequested(ctx context.Context, evt broker.Event) error {
 	e, ok := evt.(events.WalletRefundRequested)
 	if !ok {
-		return fmt.Errorf("unexpected event type: %T", evt)
+		return fmt.Errorf("%w: unexpected event type: %T", ErrUnexpectedEventType, evt)
 	}
 	if err := h.wallet.Refund(ctx, e.UserID, e.Amount); err != nil {
 		return err
@@ -66,7 +66,7 @@ func (h *WalletEvent) HandleWalletRefundRequested(ctx context.Context, evt broke
 func (h *WalletEvent) HandleWalletDebited(ctx context.Context, evt broker.Event) error {
 	e, ok := evt.(events.WalletDebited)
 	if !ok {
-		return fmt.Errorf("unexpected event type: %T", evt)
+		return fmt.Errorf("%w: unexpected event type: %T", ErrUnexpectedEventType, evt)
 	}
 	if h.logger != nil {
 		h.logger.Info("wallet debited", "payment_id", e.PaymentID, "user_id", e.UserID, "amount", e.Amount)
@@ -77,7 +77,7 @@ func (h *WalletEvent) HandleWalletDebited(ctx context.Context, evt broker.Event)
 func (h *WalletEvent) HandleWalletRefunded(ctx context.Context, evt broker.Event) error {
 	e, ok := evt.(events.WalletRefunded)
 	if !ok {
-		return fmt.Errorf("unexpected event type: %T", evt)
+		return fmt.Errorf("%w: unexpected event type: %T", ErrUnexpectedEventType, evt)
 	}
 	if h.logger != nil {
 		h.logger.Info("wallet refunded", "payment_id", e.PaymentID, "user_id", e.UserID, "amount", e.Amount)

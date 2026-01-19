@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"time"
 
@@ -27,6 +26,7 @@ func main() {
 	logger := observability.NewLogger()
 	metricsKit := observability.NewMetrics()
 	bus := broker.New()
+	defer bus.Close()
 	store, err := db.NewWithFile("./out/db.jsonl")
 	if err != nil {
 		logger.Error("db init error", "error", err.Error())
@@ -107,22 +107,6 @@ func main() {
 		}
 	}()
 
-	async := func(h broker.Handler) broker.Handler {
-		return func(ctx context.Context, evt broker.Event) error {
-			go func() {
-				defer func() {
-					if r := recover(); r != nil {
-						log.Printf("layer=handler component=async event=%s panic=%v", evt.Name(), r)
-					}
-				}()
-				if err := h(context.Background(), evt); err != nil {
-					log.Printf("layer=handler component=async event=%s err=%v", evt.Name(), err)
-				}
-			}()
-			return nil
-		}
-	}
-
 	gatewayHandler := consumerhandlers.NewPaymentEvent(logger, bus, gateway, recoverySvc)
 	resultHandler := consumerhandlers.NewPaymentResultEvent(logger, bus, paymentSvc)
 	paymentFlowHandler := consumerhandlers.NewPaymentFlowEvent(logger, bus, paymentSvc)
@@ -132,48 +116,48 @@ func main() {
 	notificationHandler := consumerhandlers.NewNotificationEvent(notificationSvc)
 	recoveryEventHandler := consumerhandlers.NewRecoveryEvent(logger, bus, paymentSvc, time.Minute, nil)
 
-	bus.Subscribe((events.PaymentChargeRequested{}).Name(), async(gatewayHandler.HandleChargeRequested))
-	bus.Subscribe((events.PaymentChargeSucceeded{}).Name(), async(resultHandler.HandleChargeSucceeded))
-	bus.Subscribe((events.PaymentChargeFailed{}).Name(), async(resultHandler.HandleChargeFailed))
-	bus.Subscribe((events.RecoveryRequested{}).Name(), async(recoveryEventHandler.HandleRecoveryRequested))
+	bus.Subscribe((events.PaymentChargeRequested{}).Name(), gatewayHandler.HandleChargeRequested)
+	bus.Subscribe((events.PaymentChargeSucceeded{}).Name(), resultHandler.HandleChargeSucceeded)
+	bus.Subscribe((events.PaymentChargeFailed{}).Name(), resultHandler.HandleChargeFailed)
+	bus.Subscribe((events.RecoveryRequested{}).Name(), recoveryEventHandler.HandleRecoveryRequested)
 
-	bus.Subscribe((events.PaymentInitialized{}).Name(), async(walletHandler.HandlePaymentInitialized))
-	bus.Subscribe((events.WalletDebitRequested{}).Name(), async(walletHandler.HandleWalletDebitRequested))
-	bus.Subscribe((events.WalletDebitRejected{}).Name(), async(paymentFlowHandler.HandleWalletDebitRejected))
-	bus.Subscribe((events.WalletDebited{}).Name(), async(paymentFlowHandler.HandleWalletDebited))
-	bus.Subscribe((events.WalletRefundRequested{}).Name(), async(walletHandler.HandleWalletRefundRequested))
+	bus.Subscribe((events.PaymentInitialized{}).Name(), walletHandler.HandlePaymentInitialized)
+	bus.Subscribe((events.WalletDebitRequested{}).Name(), walletHandler.HandleWalletDebitRequested)
+	bus.Subscribe((events.WalletDebitRejected{}).Name(), paymentFlowHandler.HandleWalletDebitRejected)
+	bus.Subscribe((events.WalletDebited{}).Name(), paymentFlowHandler.HandleWalletDebited)
+	bus.Subscribe((events.WalletRefundRequested{}).Name(), walletHandler.HandleWalletRefundRequested)
 
-	bus.Subscribe((events.PaymentCreated{}).Name(), async(auditHandler.HandleAny))
-	bus.Subscribe((events.PaymentInitialized{}).Name(), async(auditHandler.HandleAny))
-	bus.Subscribe((events.PaymentPending{}).Name(), async(auditHandler.HandleAny))
-	bus.Subscribe((events.PaymentRejected{}).Name(), async(auditHandler.HandleAny))
-	bus.Subscribe((events.WalletDebited{}).Name(), async(auditHandler.HandleAny))
-	bus.Subscribe((events.WalletRefunded{}).Name(), async(auditHandler.HandleAny))
-	bus.Subscribe((events.RecoveryRequested{}).Name(), async(auditHandler.HandleAny))
-	bus.Subscribe((events.PaymentSucceeded{}).Name(), async(auditHandler.HandleAny))
-	bus.Subscribe((events.PaymentFailed{}).Name(), async(auditHandler.HandleAny))
+	bus.Subscribe((events.PaymentCreated{}).Name(), auditHandler.HandleAny)
+	bus.Subscribe((events.PaymentInitialized{}).Name(), auditHandler.HandleAny)
+	bus.Subscribe((events.PaymentPending{}).Name(), auditHandler.HandleAny)
+	bus.Subscribe((events.PaymentRejected{}).Name(), auditHandler.HandleAny)
+	bus.Subscribe((events.WalletDebited{}).Name(), auditHandler.HandleAny)
+	bus.Subscribe((events.WalletRefunded{}).Name(), auditHandler.HandleAny)
+	bus.Subscribe((events.RecoveryRequested{}).Name(), auditHandler.HandleAny)
+	bus.Subscribe((events.PaymentSucceeded{}).Name(), auditHandler.HandleAny)
+	bus.Subscribe((events.PaymentFailed{}).Name(), auditHandler.HandleAny)
 
-	bus.Subscribe((events.PaymentCreated{}).Name(), async(projector.Apply))
-	bus.Subscribe((events.PaymentInitialized{}).Name(), async(projector.Apply))
-	bus.Subscribe((events.PaymentPending{}).Name(), async(projector.Apply))
-	bus.Subscribe((events.PaymentRejected{}).Name(), async(projector.Apply))
-	bus.Subscribe((events.PaymentSucceeded{}).Name(), async(projector.Apply))
-	bus.Subscribe((events.PaymentFailed{}).Name(), async(projector.Apply))
-	bus.Subscribe((events.WalletCredited{}).Name(), async(projector.Apply))
-	bus.Subscribe((events.WalletDebited{}).Name(), async(projector.Apply))
-	bus.Subscribe((events.WalletRefunded{}).Name(), async(projector.Apply))
+	bus.Subscribe((events.PaymentCreated{}).Name(), projector.Apply)
+	bus.Subscribe((events.PaymentInitialized{}).Name(), projector.Apply)
+	bus.Subscribe((events.PaymentPending{}).Name(), projector.Apply)
+	bus.Subscribe((events.PaymentRejected{}).Name(), projector.Apply)
+	bus.Subscribe((events.PaymentSucceeded{}).Name(), projector.Apply)
+	bus.Subscribe((events.PaymentFailed{}).Name(), projector.Apply)
+	bus.Subscribe((events.WalletCredited{}).Name(), projector.Apply)
+	bus.Subscribe((events.WalletDebited{}).Name(), projector.Apply)
+	bus.Subscribe((events.WalletRefunded{}).Name(), projector.Apply)
 
-	bus.Subscribe((events.PaymentCreated{}).Name(), async(metricsHandler.HandleAny))
-	bus.Subscribe((events.WalletDebited{}).Name(), async(metricsHandler.HandleAny))
-	bus.Subscribe((events.WalletRefunded{}).Name(), async(metricsHandler.HandleAny))
-	bus.Subscribe((events.PaymentSucceeded{}).Name(), async(metricsHandler.HandleAny))
-	bus.Subscribe((events.PaymentFailed{}).Name(), async(metricsHandler.HandleAny))
+	bus.Subscribe((events.PaymentCreated{}).Name(), metricsHandler.HandleAny)
+	bus.Subscribe((events.WalletDebited{}).Name(), metricsHandler.HandleAny)
+	bus.Subscribe((events.WalletRefunded{}).Name(), metricsHandler.HandleAny)
+	bus.Subscribe((events.PaymentSucceeded{}).Name(), metricsHandler.HandleAny)
+	bus.Subscribe((events.PaymentFailed{}).Name(), metricsHandler.HandleAny)
 
-	bus.Subscribe((events.PaymentSucceeded{}).Name(), async(notificationHandler.HandlePaymentCompleted))
-	bus.Subscribe((events.PaymentFailed{}).Name(), async(notificationHandler.HandlePaymentFailed))
+	bus.Subscribe((events.PaymentSucceeded{}).Name(), notificationHandler.HandlePaymentCompleted)
+	bus.Subscribe((events.PaymentFailed{}).Name(), notificationHandler.HandlePaymentFailed)
 
-	bus.Subscribe((events.WalletDebited{}).Name(), async(walletHandler.HandleWalletDebited))
-	bus.Subscribe((events.WalletRefunded{}).Name(), async(walletHandler.HandleWalletRefunded))
+	bus.Subscribe((events.WalletDebited{}).Name(), walletHandler.HandleWalletDebited)
+	bus.Subscribe((events.WalletRefunded{}).Name(), walletHandler.HandleWalletRefunded)
 
 	walletH := handlers.NewWallet(jsonV, bus, store, walletSvc, projector)
 	paymentH := handlers.NewPayment(jsonV, bus, store, paymentSvc, healthSvc, projector)

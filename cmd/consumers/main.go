@@ -24,6 +24,7 @@ func main() {
 	logger := observability.NewLogger()
 	metricsKit := observability.NewMetrics()
 	bus := broker.New()
+	defer bus.Close()
 	store := db.New()
 	mockDB, err := db.NewMockClient()
 	if err != nil {
@@ -62,6 +63,7 @@ func main() {
 	bus.Subscribe((events.PaymentCreated{}).Name(), auditHandler.HandleAny)
 	bus.Subscribe((events.PaymentInitialized{}).Name(), auditHandler.HandleAny)
 	bus.Subscribe((events.PaymentPending{}).Name(), auditHandler.HandleAny)
+	bus.Subscribe((events.PaymentRejected{}).Name(), auditHandler.HandleAny)
 	bus.Subscribe((events.WalletDebited{}).Name(), auditHandler.HandleAny)
 	bus.Subscribe((events.WalletRefunded{}).Name(), auditHandler.HandleAny)
 	bus.Subscribe((events.RecoveryRequested{}).Name(), auditHandler.HandleAny)

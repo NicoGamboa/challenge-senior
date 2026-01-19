@@ -24,7 +24,7 @@ func NewPaymentFlowEvent(logger *observability.Logger, bus BusContract, paymentS
 func (h *PaymentFlowEvent) HandleWalletDebited(ctx context.Context, evt broker.Event) error {
 	e, ok := evt.(events.WalletDebited)
 	if !ok {
-		return fmt.Errorf("unexpected event type: %T", evt)
+		return fmt.Errorf("%w: unexpected event type: %T", ErrUnexpectedEventType, evt)
 	}
 	if err := h.payment.MarkPending(ctx, e.PaymentID); err != nil {
 		return err
@@ -41,7 +41,7 @@ func (h *PaymentFlowEvent) HandleWalletDebited(ctx context.Context, evt broker.E
 func (h *PaymentFlowEvent) HandleWalletDebitRejected(ctx context.Context, evt broker.Event) error {
 	e, ok := evt.(events.WalletDebitRejected)
 	if !ok {
-		return fmt.Errorf("unexpected event type: %T", evt)
+		return fmt.Errorf("%w: unexpected event type: %T", ErrUnexpectedEventType, evt)
 	}
 	return h.payment.MarkRejected(ctx, e.PaymentID, e.Reason)
 }

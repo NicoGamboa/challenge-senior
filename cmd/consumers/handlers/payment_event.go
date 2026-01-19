@@ -27,7 +27,7 @@ func NewPaymentEvent(logger *observability.Logger, bus BusContract, gateway exte
 func (h *PaymentEvent) HandleChargeRequested(ctx context.Context, evt broker.Event) error {
 	e, ok := evt.(events.PaymentChargeRequested)
 	if !ok {
-		return fmt.Errorf("unexpected event type: %T", evt)
+		return fmt.Errorf("%w: unexpected event type: %T", ErrUnexpectedEventType, evt)
 	}
 
 	attempt := e.Attempt

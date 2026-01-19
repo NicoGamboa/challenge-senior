@@ -26,7 +26,7 @@ func (h *NotificationEvent) HandlePaymentCompleted(ctx context.Context, evt brok
 	}
 	e, ok := evt.(events.PaymentSucceeded)
 	if !ok {
-		return fmt.Errorf("unexpected event type: %T", evt)
+		return fmt.Errorf("%w: unexpected event type: %T", ErrUnexpectedEventType, evt)
 	}
 	h.n.Notify(ctx, e.UserID, "payment completed")
 	return nil
@@ -38,7 +38,7 @@ func (h *NotificationEvent) HandlePaymentFailed(ctx context.Context, evt broker.
 	}
 	e, ok := evt.(events.PaymentFailed)
 	if !ok {
-		return fmt.Errorf("unexpected event type: %T", evt)
+		return fmt.Errorf("%w: unexpected event type: %T", ErrUnexpectedEventType, evt)
 	}
 	h.n.Notify(ctx, e.UserID, "payment failed")
 	return nil

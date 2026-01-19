@@ -12,6 +12,8 @@ type PaymentInitialized struct {
 
 func (PaymentInitialized) Name() string { return "payment.initialized" }
 
+func (e PaymentInitialized) PartitionKey() string { return e.PaymentID }
+
 type PaymentCreated struct {
 	PaymentID string    `json:"payment_id"`
 	UserID    string    `json:"user_id"`
@@ -22,6 +24,8 @@ type PaymentCreated struct {
 
 func (PaymentCreated) Name() string { return "payment.created" }
 
+func (e PaymentCreated) PartitionKey() string { return e.PaymentID }
+
 type PaymentRejected struct {
 	PaymentID string    `json:"payment_id"`
 	UserID    string    `json:"user_id"`
@@ -30,6 +34,8 @@ type PaymentRejected struct {
 }
 
 func (PaymentRejected) Name() string { return "payment.rejected" }
+
+func (e PaymentRejected) PartitionKey() string { return e.PaymentID }
 
 type WalletDebited struct {
 	PaymentID string    `json:"payment_id"`
@@ -40,6 +46,8 @@ type WalletDebited struct {
 
 func (WalletDebited) Name() string { return "wallet.debited" }
 
+func (e WalletDebited) PartitionKey() string { return e.PaymentID }
+
 type WalletCredited struct {
 	UserID string    `json:"user_id"`
 	Amount int64     `json:"amount"`
@@ -47,6 +55,8 @@ type WalletCredited struct {
 }
 
 func (WalletCredited) Name() string { return "wallet.credited" }
+
+func (e WalletCredited) PartitionKey() string { return e.UserID }
 
 type WalletDebitRejected struct {
 	PaymentID string    `json:"payment_id"`
@@ -56,6 +66,8 @@ type WalletDebitRejected struct {
 }
 
 func (WalletDebitRejected) Name() string { return "wallet.debit_rejected" }
+
+func (e WalletDebitRejected) PartitionKey() string { return e.PaymentID }
 
 type WalletDebitRequested struct {
 	PaymentID string    `json:"payment_id"`
@@ -67,6 +79,8 @@ type WalletDebitRequested struct {
 
 func (WalletDebitRequested) Name() string { return "wallet.debit_requested" }
 
+func (e WalletDebitRequested) PartitionKey() string { return e.PaymentID }
+
 type WalletRefundRequested struct {
 	PaymentID string    `json:"payment_id"`
 	UserID    string    `json:"user_id"`
@@ -76,6 +90,8 @@ type WalletRefundRequested struct {
 
 func (WalletRefundRequested) Name() string { return "wallet.refund_requested" }
 
+func (e WalletRefundRequested) PartitionKey() string { return e.PaymentID }
+
 type PaymentPending struct {
 	PaymentID string    `json:"payment_id"`
 	UserID    string    `json:"user_id"`
@@ -83,6 +99,8 @@ type PaymentPending struct {
 }
 
 func (PaymentPending) Name() string { return "payment.pending" }
+
+func (e PaymentPending) PartitionKey() string { return e.PaymentID }
 
 type PaymentChargeRequested struct {
 	PaymentID string    `json:"payment_id"`
@@ -95,6 +113,8 @@ type PaymentChargeRequested struct {
 
 func (PaymentChargeRequested) Name() string { return "payment.charge_requested" }
 
+func (e PaymentChargeRequested) PartitionKey() string { return e.PaymentID }
+
 type PaymentChargeSucceeded struct {
 	PaymentID string    `json:"payment_id"`
 	UserID    string    `json:"user_id"`
@@ -103,6 +123,8 @@ type PaymentChargeSucceeded struct {
 }
 
 func (PaymentChargeSucceeded) Name() string { return "payment.charge_succeeded" }
+
+func (e PaymentChargeSucceeded) PartitionKey() string { return e.PaymentID }
 
 type PaymentChargeFailed struct {
 	PaymentID  string    `json:"payment_id"`
@@ -114,6 +136,8 @@ type PaymentChargeFailed struct {
 }
 
 func (PaymentChargeFailed) Name() string { return "payment.charge_failed" }
+
+func (e PaymentChargeFailed) PartitionKey() string { return e.PaymentID }
 
 type RecoveryRequested struct {
 	PaymentID string    `json:"payment_id"`
@@ -127,6 +151,8 @@ type RecoveryRequested struct {
 
 func (RecoveryRequested) Name() string { return "recovery.requested" }
 
+func (e RecoveryRequested) PartitionKey() string { return e.PaymentID }
+
 type PaymentSubmitted struct {
 	PaymentID string    `json:"payment_id"`
 	UserID    string    `json:"user_id"`
@@ -138,6 +164,8 @@ type PaymentSubmitted struct {
 
 func (PaymentSubmitted) Name() string { return "payment.submitted" }
 
+func (e PaymentSubmitted) PartitionKey() string { return e.PaymentID }
+
 type PaymentSucceeded struct {
 	PaymentID string    `json:"payment_id"`
 	UserID    string    `json:"user_id"`
@@ -146,6 +174,8 @@ type PaymentSucceeded struct {
 }
 
 func (PaymentSucceeded) Name() string { return "payment.completed" }
+
+func (e PaymentSucceeded) PartitionKey() string { return e.PaymentID }
 
 type PaymentFailed struct {
 	PaymentID string    `json:"payment_id"`
@@ -156,6 +186,8 @@ type PaymentFailed struct {
 
 func (PaymentFailed) Name() string { return "payment.failed" }
 
+func (e PaymentFailed) PartitionKey() string { return e.PaymentID }
+
 type WalletRefunded struct {
 	PaymentID string    `json:"payment_id"`
 	UserID    string    `json:"user_id"`
@@ -165,6 +197,8 @@ type WalletRefunded struct {
 
 func (WalletRefunded) Name() string { return "wallet.refunded" }
 
+func (e WalletRefunded) PartitionKey() string { return e.PaymentID }
+
 type PaymentDLQ struct {
 	PaymentID string    `json:"payment_id"`
 	UserID    string    `json:"user_id"`
@@ -173,3 +207,5 @@ type PaymentDLQ struct {
 }
 
 func (PaymentDLQ) Name() string { return "payment.dlq" }
+
+func (e PaymentDLQ) PartitionKey() string { return e.PaymentID }

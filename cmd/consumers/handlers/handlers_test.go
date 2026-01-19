@@ -36,7 +36,7 @@ func TestPaymentEvent_HandleChargeRequested(t *testing.T) {
 				gw := new(GatewayMock)
 				return NewPaymentEvent(logger, bus, gw, nil)
 			},
-			expectedErr: errors.New("unexpected"),
+			expectedErr: ErrUnexpectedEventType,
 		},
 		{
 			name: "success publishes charge_succeeded",
@@ -126,7 +126,7 @@ func TestPaymentFlowEvent_HandleWalletDebited(t *testing.T) {
 			name:        "unexpected event type",
 			evt:         events.PaymentCreated{},
 			handler:     func() *PaymentFlowEvent { return NewPaymentFlowEvent(logger, new(BusMock), new(PaymentServiceMock)) },
-			expectedErr: errors.New("unexpected"),
+			expectedErr: ErrUnexpectedEventType,
 		},
 		{
 			name: "success publishes charge_requested",
@@ -175,7 +175,7 @@ func TestPaymentResultEvent_HandleChargeFailed(t *testing.T) {
 			name:        "unexpected event type",
 			evt:         events.PaymentCreated{},
 			handler:     func() *PaymentResultEvent { return NewPaymentResultEvent(logger, new(BusMock), new(PaymentServiceMock)) },
-			expectedErr: errors.New("unexpected"),
+			expectedErr: ErrUnexpectedEventType,
 		},
 		{
 			name: "success publishes refund_requested",
@@ -224,7 +224,7 @@ func TestWalletEvent_HandleWalletDebitRequested(t *testing.T) {
 			name:        "unexpected event type",
 			evt:         events.PaymentCreated{},
 			handler:     func() *WalletEvent { return NewWalletEvent(logger, new(BusMock), new(WalletServiceMock)) },
-			expectedErr: errors.New("unexpected"),
+			expectedErr: ErrUnexpectedEventType,
 		},
 		{
 			name: "db internal on first attempt publishes recovery",
@@ -299,7 +299,7 @@ func TestRecoveryEvent_HandleRecoveryRequested(t *testing.T) {
 			name:        "unexpected event type",
 			evt:         events.PaymentCreated{},
 			handler:     func() *RecoveryEvent { return NewRecoveryEvent(logger, new(BusMock), new(PaymentServiceMock), time.Second, func(ctx context.Context, d time.Duration) error { return nil }) },
-			expectedErr: errors.New("unexpected"),
+			expectedErr: ErrUnexpectedEventType,
 		},
 		{
 			name: "unknown action",
@@ -310,7 +310,7 @@ func TestRecoveryEvent_HandleRecoveryRequested(t *testing.T) {
 				ps.On("Get", ctx, "p1").Return(&payment.Payment{ID: "p1", UserID: "u1", Amount: 10, Service: "internet"}, nil)
 				return NewRecoveryEvent(logger, bus, ps, 1*time.Millisecond, func(ctx context.Context, d time.Duration) error { return nil })
 			},
-			expectedErr: errors.New("unknown"),
+			expectedErr: ErrUnknownRecoveryAction,
 		},
 		{
 			name: "payment.charge republishes charge_requested",
@@ -457,7 +457,7 @@ func TestPaymentResultEvent_HandleChargeSucceeded(t *testing.T) {
 			name:        "unexpected event type",
 			evt:         events.PaymentCreated{},
 			handler:     func() *PaymentResultEvent { return NewPaymentResultEvent(logger, new(BusMock), new(PaymentServiceMock)) },
-			expectedErr: errors.New("unexpected"),
+			expectedErr: ErrUnexpectedEventType,
 		},
 		{
 			name: "success calls MarkSucceeded",
@@ -501,7 +501,7 @@ func TestPaymentFlowEvent_HandleWalletDebitRejected(t *testing.T) {
 			name:        "unexpected event type",
 			evt:         events.PaymentCreated{},
 			handler:     func() *PaymentFlowEvent { return NewPaymentFlowEvent(logger, new(BusMock), new(PaymentServiceMock)) },
-			expectedErr: errors.New("unexpected"),
+			expectedErr: ErrUnexpectedEventType,
 		},
 		{
 			name: "calls MarkRejected",
@@ -544,7 +544,7 @@ func TestWalletEvent_HandlePaymentInitialized(t *testing.T) {
 			name:        "unexpected event type",
 			evt:         events.PaymentCreated{},
 			handler:     func() *WalletEvent { return NewWalletEvent(logger, new(BusMock), new(WalletServiceMock)) },
-			expectedErr: errors.New("unexpected"),
+			expectedErr: ErrUnexpectedEventType,
 		},
 		{
 			name: "publishes wallet.debit_requested",
@@ -590,7 +590,7 @@ func TestWalletEvent_HandleWalletRefundRequested(t *testing.T) {
 			name:        "unexpected event type",
 			evt:         events.PaymentCreated{},
 			handler:     func() *WalletEvent { return NewWalletEvent(logger, new(BusMock), new(WalletServiceMock)) },
-			expectedErr: errors.New("unexpected"),
+			expectedErr: ErrUnexpectedEventType,
 		},
 		{
 			name: "refund error propagates",
